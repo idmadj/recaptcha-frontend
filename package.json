@@ -1,0 +1,39 @@
+{
+    "name": "recaptcha-frontend",
+    "version": "1.0.0",
+    "description": "ES module for the Google reCAPTCHA frontend integration.",
+    "license": "MIT",
+    "repository": "idmadj/recaptcha-frontend",
+    "main": "lib/index.js",
+    "scripts": {
+        "build": "babel src -d lib",
+        "build:watch": "babel src -d lib -w",
+        "prepublishOnly": "npm run build"
+    },
+    "keywords": [
+        "google",
+        "recaptcha",
+        "v3",
+        "recpatcha-v3",
+        "frontend",
+        "integration",
+        "security",
+        "spam",
+        "bots",
+        "invisible",
+        "es",
+        "es6",
+        "module",
+        "npm",
+        "package"
+    ],
+    "dependencies": {
+        "eventemitter3": "^3.1.0"
+    },
+    "devDependencies": {
+        "@babel/cli": "^7.2.3",
+        "@babel/core": "^7.4.0",
+        "@babel/preset-env": "^7.4.2",
+        "babel-preset-minify": "^0.5.0"
+    }
+}
