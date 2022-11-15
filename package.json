@@ -1,6 +1,6 @@
 {
     "name": "recaptcha-frontend",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "ES module for the Google reCAPTCHA frontend integration.",
     "license": "MIT",
     "repository": "idmadj/recaptcha-frontend",
@@ -28,11 +28,11 @@
         "package"
     ],
     "dependencies": {
-        "eventemitter3": "^3.1.0"
+        "eventemitter3": "^3.1.2"
     },
     "devDependencies": {
-        "@babel/cli": "^7.17.6",
-        "@babel/core": "^7.17.8",
-        "@babel/preset-env": "^7.16.11"
+        "@babel/cli": "^7.19.3",
+        "@babel/core": "^7.20.2",
+        "@babel/preset-env": "^7.20.2"
     }
 }
