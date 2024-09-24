@@ -1,7 +1,9 @@
 import EventEmitter from 'eventemitter3';
 
-const scriptId = 'recaptcha-frontend';
-const badgeStyleId = 'recaptcha-frontend-badge';
+const SCRIPT_ID = 'recaptcha-frontend';
+const BADGE_STYLE_ID = 'recaptcha-frontend-badge';
+
+const EARLY_CALL_ERROR = new Error('reCAPTCHA method called before the API is ready. Call `load()` before any other method.');
 
 let cachedSiteKey = null;
 
@@ -12,7 +14,7 @@ window.handleRecaptchaLoad = () => {
 };
 
 export const showBadge = () => {
-    const badgeStyle = document.getElementById(badgeStyleId);
+    const badgeStyle = document.getElementById(BADGE_STYLE_ID);
 
     if (badgeStyle) {
         document.head.removeChild(badgeStyle);
@@ -20,23 +22,21 @@ export const showBadge = () => {
 };
 
 export const hideBadge = () => {
-    if (!document.getElementById(badgeStyleId)) {
+    if (!document.getElementById(BADGE_STYLE_ID)) {
         const badgeStyle = document.createElement('style');
 
-        badgeStyle.id = badgeStyleId;
+        badgeStyle.id = BADGE_STYLE_ID;
         badgeStyle.innerHTML = '.grecaptcha-badge { visibility: hidden; }';
 
         document.head.appendChild(badgeStyle);
     }
 };
 
-export const load = (siteKey, recaptchaNet = false) => {
+export const load = (siteKey, {lang, recaptchaNet = false, render} = {}) => {
     return new Promise((resolve, reject) => {
-        const { grecaptcha } = window;
-
-        if (grecaptcha) {
+        if (window.grecaptcha) {
             resolve();
-        } else if (document.getElementById(scriptId)) {
+        } else if (document.getElementById(SCRIPT_ID)) {
             readyEmitter.addListener('ready', () => {
                 resolve();
             });
@@ -53,29 +53,75 @@ export const load = (siteKey, recaptchaNet = false) => {
                 reject();
             };
 
-            script.id = scriptId;
+            script.id = SCRIPT_ID;
             script.type = 'text/javascript';
-            script.src = `https://${(recaptchaNet ? 'www.recaptcha.net' : 'www.google.com')}/recaptcha/api.js?onload=handleRecaptchaLoad&render=${siteKey}`;
+            script.src = `https://${(recaptchaNet ? 'www.recaptcha.net' : 'www.google.com')}/recaptcha/enterprise.js?onload=handleRecaptchaLoad&render=${render ? render : siteKey}${lang ? `&hl=${lang}` : ''}`;
             script.async = true;
             script.defer = true;
             script.addEventListener('error', handleScriptError);
 
             document.head.appendChild(script);
+
+            // Use resource hints to improve loading performance
+            // https://developers.google.com/recaptcha/docs/loading#using_resource_hints
+            ["https://www.google.com", "https://www.gstatic.com"].forEach(href => {
+                const link = document.createElement('link');
+
+                link.rel = 'preconnect';
+                link.href = href;
+
+                document.head.appendChild(link);
+            });
         }
     });
 };
 
-export const execute = (action, siteKey, recaptchaNet = false) => {
-    return new Promise((resolve, reject) => {
-        siteKey = siteKey || cachedSiteKey;
+export const render = (...args) => {
+    const { grecaptcha } = window;
 
-        load(siteKey, recaptchaNet)
-        .then(() => {
-            window.grecaptcha.execute(siteKey, { action })
-            .then(resolve);
-        })
-        .catch(reject);
-    });
+    if (!grecaptcha)
+        throw EARLY_CALL_ERROR;
+
+    return grecaptcha.enterprise.render(...args);
 };
 
-export default execute;
+export const reset = (...args) => {
+    const { grecaptcha } = window;
+
+    if (!grecaptcha)
+        throw EARLY_CALL_ERROR;
+
+    return grecaptcha.enterprise.reset(...args);
+};
+
+export const execute = (...args) => {
+    const { grecaptcha } = window;
+
+    if (!grecaptcha)
+        throw EARLY_CALL_ERROR;
+
+    if (typeof args[0] === "string") {
+        const [action, siteKey] = args;
+        return grecaptcha.execute(siteKey || cachedSiteKey, { action });
+    } else {
+        return grecaptcha.execute(...args);
+    }
+};
+
+export const ready = (...args) => {
+    const { grecaptcha } = window;
+
+    if (!grecaptcha)
+        throw EARLY_CALL_ERROR;
+
+    return grecaptcha.enterprise.ready(...args);
+};
+
+export const getResponse = (...args) => {
+    const { grecaptcha } = window;
+
+    if (!grecaptcha)
+        throw EARLY_CALL_ERROR;
+
+    return grecaptcha.enterprise.getResponse(...args);
+};
