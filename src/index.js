@@ -102,9 +102,9 @@ export const execute = (...args) => {
 
     if (typeof args[0] === "string") {
         const [action, siteKey] = args;
-        return grecaptcha.execute(siteKey || cachedSiteKey, { action });
+        return grecaptcha.enterprise.execute(siteKey || cachedSiteKey, { action });
     } else {
-        return grecaptcha.execute(...args);
+        return grecaptcha.enterprise.execute(...args);
     }
 };
 
